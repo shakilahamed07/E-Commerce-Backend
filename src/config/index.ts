@@ -7,5 +7,6 @@ export default {
     node_env: process.env.NODE_ENV,
     salt_rounds: process.env.SALT_ROUNDS,
     nodemailer_host_email:process.env.NODEMAILER_HOST_MAIL,
-    nodemailer_host_pass:process.env.NODEMAILER_HOST_PASS
+    nodemailer_host_password:process.env.NODEMAILER_HOST_PASS,
+    jwt_secret:process.env.JWT_SECRET,
 }

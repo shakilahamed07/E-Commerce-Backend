@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verification</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                background-color: #f4f6f8;
+                margin: 0;
+                padding: 0;
+                color: #333333;
+            }
+            .email-wrapper {
+                width: 100%;
+                background-color: #f4f6f8;
+                padding: 40px 0;
+            }
+            .email-content {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            }
+            .email-header {
+                background-color: #4f46e5;
+                padding: 30px;
+                text-align: center;
+                color: #ffffff;
+            }
+            .email-header h1 {
+                margin: 0;
+                font-size: 24px;
+                font-weight: 600;
+            }
+            .email-body {
+                padding: 40px 30px;
+                text-align: center;
+            }
+            .email-body p {
+                font-size: 16px;
+                line-height: 1.5;
+                color: #4b5563;
+                margin-bottom: 24px;
+            }
+            .otp-box {
+                background-color: #f3f4f6;
+                border: 2px dashed #d1d5db;
+                border-radius: 6px;
+                padding: 16px;
+                font-size: 32px;
+                font-weight: 700;
+                letter-spacing: 6px;
+                color: #1f2937;
+                display: inline-block;
+                margin: 10px 0 24px 0;
+            }
+            .email-footer {
+                background-color: #f9fafb;
+                padding: 20px 30px;
+                text-align: center;
+                font-size: 13px;
+                color: #9ca3af;
+                border-top: 1px solid #e5e7eb;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="email-wrapper">
+            <div class="email-content">
+                <!-- Header -->
+                <div class="email-header">
+                    <h1>Verify Your Email</h1>
+                </div>
+
+                <!-- Body -->
+                <div class="email-body">
+                    <p>Hi <strong>{{userName}}</strong>,</p>
+                    <p>Thanks for getting started with us! Please use the One-Time Password (OTP) below to complete your verification process. This code is valid for <strong>3 minutes</strong>.</p>
+                    
+                    <div class="otp-box">{{otpCode}}</div>
+
+                    <p>If you didn't request this, you can safely ignore this email.</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="email-footer">
+                    <p>&copy; E-commerce-bd. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>

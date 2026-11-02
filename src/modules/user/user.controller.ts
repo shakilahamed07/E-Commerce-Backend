@@ -1,17 +1,22 @@
 import catchAsync from "../../utils/catchAsync.js";
 import sendResponse from "../../utils/sendResponse.js";
+import otpService from "../otp/otp.service.js";
 import userService from "./user.service.js";
 import status from "http-status";
+
 
 const createUser =  catchAsync(async(req, res, next) =>{
     
     const result = await userService.createUser(req.body);
+    const sendOtp = await otpService.resendOtp({email: result.email});
 
     sendResponse(res, {
         statusCode: status.OK,
         success: true,
-        message: "user fetched successfully",
-        data: result
+        message: "otp send successfully",
+        data: {
+            sendOtp
+        }
     })
 })
 
