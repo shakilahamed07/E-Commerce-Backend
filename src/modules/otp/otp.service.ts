@@ -62,7 +62,10 @@ const resendOtp = async (payload: { email: string }) => {
       expiresIn: "3m",
     });
 
-    const otpEmailPath = path.join(process.cwd(),"public/view/verification.html",);
+    const otpEmailPath = path.join(
+      process.cwd(),
+      "public/view/verification.html",
+    );
 
     let emailHtml = fs.readFileSync(otpEmailPath, "utf-8");
 
@@ -70,11 +73,7 @@ const resendOtp = async (payload: { email: string }) => {
       .replace("{{userName}}", user?.name || "User")
       .replace("{{otpCode}}", String(otp));
 
-    await sendEmail(
-      user?.email,
-      "Your One-time OTP Code",
-      emailHtml,
-    );
+    await sendEmail(user?.email, "Your One-time OTP Code", emailHtml);
 
     return {
       token,
@@ -86,8 +85,73 @@ const resendOtp = async (payload: { email: string }) => {
   }
 };
 
+const verifyOtp = async (token: string, otp: number) => {
+  try {
+    if (!token) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Token is required");
+    }
+
+    let decodedData: JwtPayLoad;
+
+    decodedData = jwt.verify(token, config.jwt_secret as string) as JwtPayload;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decodedData?.id as string,
+      },
+      include: {
+        verification: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    if (
+      user.verification?.expiredAt &&
+      moment().utc().isAfter(moment(user.verification.expiredAt))
+    ) {
+      throw new AppError(httpStatus.BAD_REQUEST, "OTP has expired");
+    }
+
+    if (user.verification?.otp !== otp) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP");
+    }
+
+    if (user.verification?.status) {
+      throw new AppError(httpStatus.BAD_REQUEST, "OTP has already been used");
+    }
+
+    const result = await prisma.user.update({
+      where: {
+        id: user?.id,
+      },
+      data: {
+        verification: {
+          update: {
+            status: true,
+          },
+        },
+      },
+      include: {
+        verification: true,
+      },
+    });
+
+    return {
+      id: result?.id,
+      email: result?.email,
+    };
+
+  } catch (error: any) {
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, error?.message);
+  }
+};
+
 const otpService = {
   resendOtp,
+  verifyOtp,
 };
 
 export default otpService;
