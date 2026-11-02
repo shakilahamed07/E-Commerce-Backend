@@ -1,0 +1,531 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String   @unique
+  password    String
+  status      status   @default(active)
+  role        Role     @default(user)
+  profile     String?
+  phoneNumber String?
+  customerId String?
+  expireAt    DateTime? @default(now())
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  verification     Verification? 
+  deviceHistory    DeviceHistory[] 
+  address    Address[] 
+  wishlists  Wishlist[]
+  reviews  Reviews[]
+  orders Orders[]
+  payments Payments[]
+  couponUsage CouponUsage[]
+  notification Notification[]
+}
+
+model DeviceHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  ip        String?
+  browser   String?
+  os        String?
+  device    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Verification { 
+  userId    String   @map("_id") @db.ObjectId
+  otp       Int
+  expiredAt DateTime?
+  status    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId])
+}
+
+model Address {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  zoneId     String   @db.ObjectId
+  street     String
+  phoneNumber     String
+  city       String
+  state      String
+  country    String
+  postalCode String 
+  addressType AddressType @default(home)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+  zone DeliveryZone? @relation(fields: [zoneId], references: [id])
+  orders Orders[]
+}
+
+
+model DeliveryZone {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  zoneName String 
+  zoneCode String
+  deliveryFee Float
+  status Boolean @default(true)
+  country String
+  isDeleted Boolean @default(false)
+
+  address Address[]
+  
+}
+//contents
+model Contents {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  termsAndCondition String
+  privacyPolicy     String 
+  refundPolicy      String
+  shippingPolicy    String
+  aboutUs           String
+  location          String
+  copyRight         String
+  footerText        String 
+
+  // shop details
+  shopName String?
+  shopEmail String?
+  shopPhone String?
+  shopAddress String?
+  shopLogo String?
+  Country String?
+
+  vat Float
+  vatType CouponType @default(percentage)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+ @@map("contents")
+} 
+
+//media
+model SocialMedia {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  link String
+  icon String 
+}
+
+
+ 
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String?
+  image       String?
+  slug        String   @unique
+  sortOrder   Int       @default(0)
+  status      Boolean @default(true)
+  isDeleted   Boolean  @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Products[]
+  subCategories SubCategory[] 
+}
+
+model SubCategory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String?
+  image       String?
+  categoryId   String   @db.ObjectId  
+  isDeleted   Boolean  @default(false)
+ 
+  parentId    String?  @db.ObjectId
+  parent      SubCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    SubCategory[]  @relation("CategoryHierarchy")
+  sortOrder   Int      @default(0)
+  status      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  products    Products[]
+}
+
+
+model Brands {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  name     String   @unique
+  description String?
+  image    String?
+  isDeleted   Boolean  @default(false)
+  sortOrder Int      @default(0)
+  status   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Products[]
+}
+
+//custom options for products section 
+model CustomOption {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique        // Color, Size, Material
+  isActive    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+
+  values      CustomOptionValue[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ProductOption ProductOption[]
+}
+
+model CustomOptionValue {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  customOptionId String? @db.ObjectId
+  label       String        // Black, White, XL, XXL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  customOption CustomOption? @relation(fields: [customOptionId], references: [id])
+
+  optionValues ProductOptionValue[]
+}
+
+
+// product schema 
+model Products {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String @unique 
+  flag       String?
+
+  
+  description String?
+  price       Float
+
+
+  stock       Int
+  sale       Int @default(0)
+  categoryId  String?   @db.ObjectId
+  subCategoryId  String?   @db.ObjectId
+  brandId     String?   @db.ObjectId
+  isHighlighted Boolean @default(false)
+  isDeleted   Boolean  @default(false)
+  status      Boolean  @default(true)
+  
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images      Images[]
+  category    Category? @relation(fields: [categoryId], references: [id]) 
+  subCategory SubCategory? @relation(fields:[subCategoryId], references: [id])
+  brand       Brands?   @relation(fields: [brandId], references: [id])
+  discounts   productDiscount[]
+  productOptions ProductOption[]
+  couponProducts CouponProduct[]
+  wishlists  Wishlist[]
+  reviews  Reviews[]
+  orderItems OrderItems[]
+}
+
+ model Images {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId String   @db.ObjectId
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Products? @relation(fields: [productId], references: [id])
+ }
+
+
+ model ProductOption {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  productId   String? @db.ObjectId
+  customOptionId String? @db.ObjectId     // Ref -> Color / Size
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  product       Products?      @relation(fields: [productId], references: [id])
+  customOption CustomOption? @relation(fields: [customOptionId], references: [id])
+
+  optionValues ProductOptionValue[]
+}
+
+model ProductOptionValue {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productOptionId String? @db.ObjectId
+  customOptionValueId String? @db.ObjectId
+  isDeleted   Boolean  @default(false)
+
+  price     Float
+  quantity  Int
+
+  productOption     ProductOption?     @relation(fields: [productOptionId], references: [id])
+  customOptionValue CustomOptionValue? @relation(fields: [customOptionValueId], references: [id])
+  orderItems OrderItems[]
+}
+
+
+model productDiscount {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId   String?   @db.ObjectId
+  discount    Float
+  startDate   DateTime
+  endDate     DateTime 
+  isTaxIncluded Boolean @default(false)
+  isDeleted   Boolean  @default(false)
+
+  product     Products? @relation(fields: [productId], references: [id])
+}
+
+//cups code 
+model Coupons {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  code        String   @unique  
+  type        CouponType @default(percentage)
+  discount    Float 
+  startDate  DateTime
+  endDate    DateTime
+  usePerCoupon   Int @default(10)
+  usePerUser     Int @default(1)
+  isActive     Boolean  @default(true) 
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  couponProducts CouponProduct[]
+  couponUsage CouponUsage[]
+  orders Orders[]
+}
+
+model CouponUsage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  couponId  String?   @db.ObjectId
+  userId    String?   @db.ObjectId
+
+  usedAt    DateTime @default(now())
+
+  coupon Coupons? @relation(fields: [couponId], references: [id])
+  user   User?    @relation(fields: [userId], references: [id])
+
+  // @@unique([couponId, userId])
+}
+
+
+model CouponProduct {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  couponId  String?   @db.ObjectId
+  productId String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  coupon   Coupons?  @relation(fields: [couponId], references: [id])
+  product  Products? @relation(fields: [productId], references: [id])
+}
+
+model Orders {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber String @unique
+  status orderStatus @default(pending)
+  isPaid Boolean @default(false)
+  isReviewed Boolean @default(false)
+  tranId String? 
+  note String? 
+  totalPrice Float 
+  addressId String? @db.ObjectId
+  userId String? @db.ObjectId
+  couponId String? @db.ObjectId
+  
+   
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  shippingAddress Address? @relation(fields: [addressId], references: [id])
+  coupons    Coupons?     @relation(fields: [couponId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+  orderItems OrderItems[]
+  payments Payments? 
+  review Reviews? 
+  notification Notification[]
+  
+}
+
+model OrderItems {
+   id String @id @default(auto()) @map("_id") @db.ObjectId
+   productId String? @db.ObjectId
+   orderId String? @db.ObjectId
+   optionValueId String? @db.ObjectId
+   quantity Int 
+   price Float 
+
+   product  Products? @relation(fields: [productId], references: [id])
+   order  Orders? @relation(fields: [orderId], references: [id])
+   optionValue ProductOptionValue? @relation(fields: [optionValueId], references: [id])
+}
+
+
+model Payments {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId String? @db.ObjectId @unique
+  userId String? @db.ObjectId
+  tranId String? 
+  status PaymentStatus @default(pending)
+  paymentAt DateTime?
+  amount Float
+  paymentIntentId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  order  Orders? @relation(fields: [orderId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+  notification Notification[]
+}
+
+
+
+model Wishlist {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?   @db.ObjectId
+  productId String?   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User?     @relation(fields: [userId], references: [id])
+  product Products? @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Reviews {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?   @db.ObjectId
+  productId String?   @db.ObjectId 
+  rating    Float
+  comment   String?
+  orderId   String  @db.ObjectId @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User?     @relation(fields: [userId], references: [id])
+  order    Orders?     @relation(fields: [orderId], references: [id])
+  product Products? @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Notification {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  receiverId String? @db.ObjectId
+  referenceId String? @db.ObjectId 
+  message String
+  description String?
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+   user    User?     @relation(fields: [receiverId], references: [id])
+   payment    Payments?     @relation(fields: [referenceId], references: [id])
+   orders    Orders?     @relation(fields: [referenceId], references: [id])
+}
+
+
+model Carousel {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String?
+  image     String
+  link      String?
+  index     Int      @default(0)
+  status    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Banner {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  image           String
+  mobileImg       String
+  title           String?
+  subtitle        String?
+  badge           String?
+  buttonText      String?
+  productSlug     String?
+  dir             String?
+  index           Int      @default(0) 
+  status          Boolean  @default(true) 
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Enums 
+enum status {
+  active
+  blocked
+}
+ 
+enum Role {
+  admin
+  sub_admin
+  supper_admin
+  user
+}
+
+enum AddressType {
+  home
+  office
+  other
+}
+
+enum orderStatus {
+  pending
+  processing
+  shipped
+  outForDelivery
+  delivered
+  canceled
+  refunded
+}
+
+enum PaymentStatus {
+  pending
+  paid 
+  failed 
+  refunded
+}
+
+
+enum CouponType {
+  percentage
+  fixed_amount
+}

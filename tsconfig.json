@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "es2022",
+    "strict": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src/**/*", "src/modules/user/user.validation.ts"]
+}
