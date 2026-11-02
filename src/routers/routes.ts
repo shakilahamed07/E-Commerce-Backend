@@ -2,6 +2,7 @@ import type { Router } from "express";
 import express from "express";
 import userRouter from "../modules/user/user.routes.js";
 import otpRouter from "../modules/otp/otp.routes.js";
+import authRoutes from "../modules/auth/auth.routes.js";
 
 
 const router:Router = express.Router();
@@ -14,6 +15,10 @@ const moduleRoutes = [
     {
         path: "/otp",
         route: otpRouter,
+    },
+    {
+        path: "/auth",
+        route: authRoutes,
     },
 ]
 
