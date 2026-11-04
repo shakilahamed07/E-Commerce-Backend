@@ -16,6 +16,7 @@ model User {
   password    String
   status      status   @default(active)
   role        Role     @default(user)
+  needToPasswordChange Boolean  @default(false)
   profile     String?
   phoneNumber String?
   customerId String?

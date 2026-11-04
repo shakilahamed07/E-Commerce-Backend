@@ -16,7 +16,46 @@ const result = await authService.login(req.body)
     })
 })
 
+const changePassword = catchAsync(async(req, res, next)=>{
+
+const result = await authService.changePassword(req.user?.id , req.body) 
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success:true,
+        message:"user password changed successfully",
+        data: result
+    })
+})
+
+const forgotPassword = catchAsync(async(req, res, next)=>{
+
+const result = await authService.forgotPassword(req.body) 
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success:true,
+        message:"user password reset link sent successfully",
+        data: result
+    })
+})
+
+const resetPassword = catchAsync(async(req, res, next)=>{
+
+const result = await authService.resetPassword(req.user.id, req.body)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success:true,
+        message:"user password reset successfully",
+        data: result
+    })
+})
+
 
 export const authController = {
-    login
+    login,
+    changePassword,
+    forgotPassword,
+    resetPassword
 }

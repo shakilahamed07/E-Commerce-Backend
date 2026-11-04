@@ -77,7 +77,6 @@ const resendOtp = async (payload: { email: string }) => {
 
     return {
       token,
-      otp: otp,
       expiresAt: expiresAt.toISOString(),
     };
   } catch (error: any) {
