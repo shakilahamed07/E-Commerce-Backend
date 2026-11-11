@@ -22,7 +22,7 @@ const createUser =  catchAsync(async(req, res, next) =>{
 
 
 const getUser =  catchAsync(async(req, res, next) =>{
-    const result = await userService.getUser();
+    const result = await userService.getUser(req.query);
 
     sendResponse(res, {
         statusCode: status.OK,

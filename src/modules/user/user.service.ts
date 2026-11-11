@@ -4,6 +4,10 @@ import prisma from "../../utils/prisma.js"
 import httpStatus from "http-status"
 import bcrypt from 'bcrypt';
 import config from "../../config/index.js";
+import pickQuery from "../../utils/packQuery.js";
+import { Role } from "../../generated/prisma/enums.js";
+import calculatePagination from "../../helpers/pagination.helpers.js";
+
 
 
 const createUser = async(payload:Prisma.UserCreateInput) =>{
@@ -40,15 +44,86 @@ const createUser = async(payload:Prisma.UserCreateInput) =>{
   }
 }
 
-const getUser = async() =>{
-    const data = await prisma.user.findMany();
+const getUser = async(query: Record<string, any>) =>{
+
+    const {filters, pagination} = await pickQuery(query);
+
+    const {searchTerm, ...filtersData} = filters;
+
+    // create pipeline
+    const pipeline:Prisma.UserWhereInput = {
+        AND: [],
+        NOT: {
+            role: Role.admin,
+        },
+    }
+
+    // search condition
+    if(searchTerm){
+        pipeline.OR = ['name', 'email', 'phoneNumber', 'status'].map(field => ({
+            [field]: {
+                contains: searchTerm,
+                mode: 'insensitive'
+            }
+        }))
+    }
+
+    // filter query condition
+    if(Object.keys(filtersData).length > 0){
+        const oldAnd = pipeline.AND;
+        const oldArray = Array.isArray(oldAnd) ? oldAnd : oldAnd ? [oldAnd] : [];
+
+        pipeline.AND = [
+            {
+                isDeleted: false,
+            },
+
+            ...oldArray,
+            ...Object.entries(filtersData).map(([key, value]) => ({
+                [key]: {equals: value},
+            })),
+        ]
+    }
+
+    // sorting condition
+    const {page, limit, skip, sort} = calculatePagination(pagination)
+    let sortArray: any[] = [];
+
+    if(sort){
+        sortArray = sort.split(',').map(fiend => {
+            const trimmedField = fiend.trim();
+            if(trimmedField.startsWith('-')) {
+                return { [trimmedField.slice(1)]: 'desc'};
+            }
+            return {[trimmedField]: 'asc'};
+        });
+    }
+
+
+    const data = await prisma.user.findMany({
+        where: pipeline,
+        skip,
+        take: limit,
+        orderBy: sortArray,
+        select:{
+            id: true,
+            name: true
+        }
+    });
+
+    const total = await prisma.user.count({
+        where: pipeline
+    })
 
     if(!data){
         throw new AppError(httpStatus.NOT_FOUND, 'User Data Not Found')
     }
 
-    return data;
-}
+    return {
+        data,
+        meta : { page, limit, total}
+    };
+};
 
 const getSingleUser = async(id:any) =>{
     const user = await prisma.user.findUnique({
@@ -77,7 +152,6 @@ const deleteUser = async(id:any) =>{
 
     return Result;
 }
-
 const updateUser = async(userId:any, updateData:object) =>{
     const updateUser = await prisma.user.update({
         where: {id: userId},

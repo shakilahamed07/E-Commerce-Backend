@@ -7,6 +7,7 @@ import type { email } from "zod";
 
 const getProfile = async (userId:string) => {
     console.log(userId)
+
     const result = await prisma.user.findUnique({
         where:{
             id:userId,
