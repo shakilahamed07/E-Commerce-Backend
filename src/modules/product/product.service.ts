@@ -3,24 +3,71 @@ import prisma from "../../utils/prisma.js"
 import httpStatus from "http-status"
 import bcrypt from 'bcrypt';
 import config from "../../config/index.js";
+import type { Prisma } from "../../generated/prisma/browser.js";
 
 
-const createProduct = async(userId:string, updateData:object) =>{
-    const updateUser = await prisma.user.update({
-        where: {id: userId},
-        data: updateData
-    })
+const createProduct = async(Payload:any) =>{
 
-    if(!updateUser){
-        throw new AppError(httpStatus.FAILED_DEPENDENCY, 'Profile Update Unsuccessful')
+    const {images, discount, ...others} = Payload;
+
+    const newProduct = await prisma.products.create({
+      data: {
+
+        ...others,
+
+        //save image table
+        images: images && images.length > 0 ? {
+          create: images.map((url: string) => ({ url }))
+        } : undefined,
+
+        //save discount table
+        discounts: discount ? {
+          create: {
+            discount: parseFloat(discount.discount),
+            startDate: new Date(discount.startDate),
+            endDate: new Date(discount.endDate),
+          }
+        } : undefined
+
+      },
+      include: {
+        images: true,
+        category: true,
+        subCategory: true,
+        brand: true,
+        discounts: true,
+      },
+    });
+
+    if(!newProduct){
+        throw new AppError(httpStatus.FAILED_DEPENDENCY, 'Product creation Unsuccessful')
     }
 
-    return updateUser;
+    return newProduct;
+}
+
+const getProducts = async () => {
+
+    const products = await prisma.products.findMany({
+      where: {
+        isDeleted: false 
+      },
+      include: {
+        images: true,
+        category: true,
+        subCategory: true,
+        brand: true,
+        discounts: true,
+      },
+    });
+
+    return products;
 }
 
 
 const productService = {
-    createProduct
+    createProduct,
+    getProducts
 }
 
 export default productService;

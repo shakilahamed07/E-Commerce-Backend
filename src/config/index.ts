@@ -11,4 +11,8 @@ export default {
     jwt_secret:process.env.JWT_SECRET,
     jwt_access_expires_in:process.env.JWT_ACCESS_EXPIRES_IN,
     jwt_refresh_expires_in:process.env.JWT_REFRESH_EXPIRES_IN,
+    aws_bucket_name:process.env.AWS_BUCKET_NAME,
+    aws_bucket_region:process.env.AWS_BUCKET_REGION,
+    aws_secret_access_key:process.env.AWS_SECRET_ACCESS_KEY,
+    aws_access_key:process.env.AWS_ACCESS_KEY,
 }
