@@ -7,7 +7,7 @@ const router:Router = Router();
 
 router.post("/create", auth(Role.admin, Role.sub_admin, Role.supper_admin), productController.createProduct);
 router.get("/products",  productController.getProducts);
-// auth(Role.user, Role.admin, Role.sub_admin, Role.supper_admin),
+router.delete("/:id", auth(Role.admin, Role.sub_admin, Role.supper_admin), productController.deleteProduct);
 
 const productRouter = router;
 export default productRouter;

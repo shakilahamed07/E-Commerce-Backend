@@ -105,7 +105,7 @@ const getUser = async (query: Record<string, any>) => {
     select: {
       id: true,
       name: true,
-    },
+    }
   });
 
   const total = await prisma.user.count({
