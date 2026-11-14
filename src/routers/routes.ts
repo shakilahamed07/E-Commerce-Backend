@@ -5,6 +5,7 @@ import otpRouter from "../modules/otp/otp.routes.js";
 import authRoutes from "../modules/auth/auth.routes.js";
 import profileRouter from "../modules/profile/profile.routes.js";
 import productRouter from "../modules/product/product.routes.js";
+import uploadRouter from "../modules/uploads/uploads.routes.js";
 
 
 const router:Router = express.Router();
@@ -29,6 +30,10 @@ const moduleRoutes = [
     {
         path: "/product",
         route: productRouter,
+    },
+    {
+        path: "/uploads",
+        route: uploadRouter,
     },
 ]
 
