@@ -17,7 +17,7 @@ const uploadSingle =  catchAsync(async(req, res, next) =>{
 
 const uploadMultiple =  catchAsync(async(req, res, next) =>{
 
-    const result = req.body
+    const result = req.body;
 
     sendResponse(res, {
         statusCode: status.OK,
